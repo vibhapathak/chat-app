@@ -6,12 +6,13 @@ import Chat from './pages/chat';
 import { useAppStore } from './store';
 import { apiClient } from './lib/api-client';
 import { GET_USER_INFO } from './utils/constants';
-
+import axios from 'axios';
 const PrivateRoute = ({ children }) => {
     const { userInfo } = useAppStore();
     const isAuthenticated = !!userInfo;
     return isAuthenticated ? children : <Navigate to="/auth" />;
-};
+}; 
+
 
 const AuthRoute = ({ children }) => {
     const { userInfo } = useAppStore();
@@ -26,10 +27,16 @@ const App = () => {
     useEffect(() => {
         const getUserData = async () => {
             try {
-                const response = await apiClient.get(GET_USER_INFO);
+                const response = await apiClient.get(GET_USER_INFO,{withCredentials:true});
                 console.log(response);
-                setUserInfo(response.data.user); // Assuming response.data.user contains user info
+                if(response.status === 200 && response.data.id){
+                    setUserInfo(response.data); 
+                } else{
+                    setUserInfo(undefined);
+                }
+               
             } catch (error) {
+                setUserInfo(undefined);
                 console.error("Error fetching user data:", error);
                 console.log("Error details:", error.response ? error.response.data : error.message);
             } finally {
